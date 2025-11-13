@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Pass Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        :root {
+            --color-white: rgba(255, 255, 255, 1);
+            --color-black: rgba(0, 0, 0, 1);
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-gray-400: rgba(119, 124, 124, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-brown-600: rgba(94, 82, 64, 1);
+            --color-charcoal-700: rgba(31, 33, 33, 1);
+            --color-charcoal-800: rgba(38, 40, 40, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-300: rgba(50, 184, 198, 1);
+            --color-teal-400: rgba(45, 166, 178, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-teal-700: rgba(26, 104, 115, 1);
+            --color-teal-800: rgba(41, 150, 161, 1);
+            --color-red-400: rgba(255, 84, 89, 1);
+            --color-red-500: rgba(192, 21, 47, 1);
+            --color-orange-400: rgba(230, 129, 97, 1);
+            --color-orange-500: rgba(168, 75, 47, 1);
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-slate-900-rgb: 19, 52, 59;
+            --color-slate-500-rgb: 98, 108, 113;
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: var(--color-slate-900);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-primary-active: var(--color-teal-700);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-btn-primary-text: var(--color-cream-50);
+            --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-size-base: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-3xl: 24px;
+            --font-size-4xl: 30px;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 550;
+            --font-weight-bold: 600;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --space-32: 32px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            --duration-normal: 250ms;
+            --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-gray-400-rgb: 119, 124, 124;
+                --color-teal-300-rgb: 50, 184, 198;
+                --color-gray-300-rgb: 167, 169, 169;
+                --color-gray-200-rgb: 245, 245, 245;
+                --color-background: var(--color-charcoal-700);
+                --color-surface: var(--color-charcoal-800);
+                --color-text: var(--color-gray-200);
+                --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+                --color-primary: var(--color-teal-300);
+                --color-primary-hover: var(--color-teal-400);
+                --color-primary-active: var(--color-teal-800);
+                --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+                --color-btn-primary-text: var(--color-slate-900);
+            }
+        }
+
+        @font-face {
+            font-family: 'FKGroteskNeue';
+            src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2') format('woff2');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: var(--space-20);
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-32);
+            box-shadow: var(--shadow-md);
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-32);
+            color: var(--color-text);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-24);
+        }
+
+        .label {
+            display: block;
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-base);
+            padding: var(--space-32);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-standard);
+            background-color: var(--color-background);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--color-primary);
+            background-color: var(--color-surface);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--color-primary);
+            background-color: var(--color-surface);
+            transform: scale(1.02);
+        }
+
+        .upload-zone.has-image {
+            padding: var(--space-8);
+            border-style: solid;
+        }
+
+        .upload-text {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-base);
+        }
+
+        .upload-preview {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        .upload-zone.has-image .upload-preview {
+            display: block;
+        }
+
+        .upload-zone.has-image .upload-text {
+            display: none;
+        }
+
+        #photoZone {
+            min-height: 240px;
+            max-height: 300px;
+        }
+
+        #logoZone {
+            min-height: 140px;
+            max-height: 180px;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: var(--space-12);
+            font-size: var(--font-size-lg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            font-family: var(--font-family-base);
+            transition: border-color var(--duration-normal) var(--ease-standard);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .create-button {
+            width: 100%;
+            padding: var(--space-16);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-btn-primary-text);
+            background-color: var(--color-primary);
+            border: none;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-standard);
+            margin-top: var(--space-32);
+        }
+
+        .create-button:hover:not(:disabled) {
+            background-color: var(--color-primary-hover);
+        }
+
+        .create-button:active:not(:disabled) {
+            background-color: var(--color-primary-active);
+        }
+
+        .create-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        .generating {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .generating::after {
+            content: 'Generating PDF...';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--color-primary);
+            color: var(--color-btn-primary-text);
+            padding: var(--space-12) var(--space-24);
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-base);
+        }
+
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Press Pass Generator</h1>
+        
+        <div class="form-group">
+            <label class="label">Student Photo</label>
+            <div class="upload-zone" id="photoZone">
+                <div class="upload-text">Click or Drag Student Photo</div>
+                <img class="upload-preview" id="photoPreview" alt="Student photo">
+            </div>
+            <input type="file" id="photoInput" class="hidden-input" accept="image/jpeg,image/jpg,image/png,image/webp">
+        </div>
+
+        <div class="form-group">
+            <label class="label">Student Name</label>
+            <input type="text" id="studentName" class="text-input" placeholder="Enter student name">
+        </div>
+
+        <div class="form-group">
+            <label class="label">Title</label>
+            <input type="text" id="studentTitle" class="text-input" placeholder="e.g., Photographer, Reporter, Editor">
+        </div>
+
+        <div class="form-group">
+            <label class="label">School Name</label>
+            <input type="text" id="schoolName" class="text-input" placeholder="Enter school name">
+        </div>
+
+        <div class="form-group">
+            <label class="label">ID Number</label>
+            <input type="text" id="idNumber" class="text-input" placeholder="Enter ID number (e.g., 12345)">
+        </div>
+
+        <div class="form-group">
+            <label class="label">School Logo</label>
+            <div class="upload-zone" id="logoZone">
+                <div class="upload-text">Click or Drag School Logo</div>
+                <img class="upload-preview" id="logoPreview" alt="School logo">
+            </div>
+            <input type="file" id="logoInput" class="hidden-input" accept="image/jpeg,image/jpg,image/png,image/webp">
+        </div>
+
+        <button class="create-button" id="createButton" disabled>Create Press Pass</button>
+    </div>
+
+    <canvas id="barcodeCanvas"></canvas>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        // State management
+        let studentPhoto = null;
+        let studentPhotoImg = null;
+        let schoolLogo = null;
+        let schoolLogoImg = null;
+        let studentNameValue = '';
+        let studentTitleValue = '';
+        let schoolNameValue = '';
+        let idNumberValue = '';
+
+        // DOM elements
+        const photoZone = document.getElementById('photoZone');
+        const photoInput = document.getElementById('photoInput');
+        const photoPreview = document.getElementById('photoPreview');
+        
+        const logoZone = document.getElementById('logoZone');
+        const logoInput = document.getElementById('logoInput');
+        const logoPreview = document.getElementById('logoPreview');
+        
+        const studentNameInput = document.getElementById('studentName');
+        const studentTitleInput = document.getElementById('studentTitle');
+        const schoolNameInput = document.getElementById('schoolName');
+        const idNumberInput = document.getElementById('idNumber');
+        const createButton = document.getElementById('createButton');
+        const barcodeCanvas = document.getElementById('barcodeCanvas');
+
+        // Setup drag and drop for photo
+        setupUploadZone(photoZone, photoInput, photoPreview, (dataUrl, img) => {
+            studentPhoto = dataUrl;
+            studentPhotoImg = img;
+            checkFormCompletion();
+        });
+
+        // Setup drag and drop for logo
+        setupUploadZone(logoZone, logoInput, logoPreview, (dataUrl, img) => {
+            schoolLogo = dataUrl;
+            schoolLogoImg = img;
+            checkFormCompletion();
+        });
+
+        // Student name input
+        studentNameInput.addEventListener('input', (e) => {
+            studentNameValue = e.target.value.trim();
+            checkFormCompletion();
+        });
+
+        // Student title input
+        studentTitleInput.addEventListener('input', (e) => {
+            studentTitleValue = e.target.value.trim();
+            checkFormCompletion();
+        });
+
+        // School name input
+        schoolNameInput.addEventListener('input', (e) => {
+            schoolNameValue = e.target.value.trim();
+            checkFormCompletion();
+        });
+
+        // ID number input
+        idNumberInput.addEventListener('input', (e) => {
+            idNumberValue = e.target.value.trim();
+            checkFormCompletion();
+        });
+
+        // Create button
+        createButton.addEventListener('click', generatePressPass);
+
+        function setupUploadZone(zone, input, preview, callback) {
+            // Click to upload
+            zone.addEventListener('click', () => {
+                input.click();
+            });
+
+            // File input change
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    handleImageFile(file, preview, zone, callback);
+                }
+            });
+
+            // Drag and drop
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('dragover');
+            });
+
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('dragover');
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    handleImageFile(file, preview, zone, callback);
+                }
+            });
+        }
+
+        function handleImageFile(file, preview, zone, callback) {
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                const img = new Image();
+                img.onload = () => {
+                    preview.src = dataUrl;
+                    zone.classList.add('has-image');
+                    callback(dataUrl, img);
+                };
+                img.src = dataUrl;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function checkFormCompletion() {
+            const isComplete = studentPhoto && schoolLogo && studentNameValue && studentTitleValue && schoolNameValue && idNumberValue;
+            createButton.disabled = !isComplete;
+        }
+
+        function generatePressPass() {
+            createButton.classList.add('generating');
+
+            setTimeout(() => {
+                try {
+                    generateBothPages();
+                    
+                    // Reset form
+                    resetForm();
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    alert('Error generating press pass. Please try again.');
+                } finally {
+                    createButton.classList.remove('generating');
+                }
+            }, 100);
+        }
+
+        function generateBothPages() {
+            // Generate barcode image
+            JsBarcode(barcodeCanvas, idNumberValue, {
+                format: 'CODE128',
+                width: 2,
+                height: 40,
+                displayValue: false
+            });
+            const barcodeDataUrl = barcodeCanvas.toDataURL();
+
+            // Create PDF with first page horizontal
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: [54, 85.6]
+            });
+
+            // Generate horizontal page
+            addHorizontalPage(pdf, barcodeDataUrl);
+
+            // Add vertical page
+            pdf.addPage([54, 85.6], 'portrait');
+            addVerticalPage(pdf, barcodeDataUrl);
+
+            // Save PDF
+            const fileName = `press-pass-${studentNameValue.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+            pdf.save(fileName);
+        }
+
+        function addHorizontalPage(pdf, barcodeDataUrl) {
+            const pageWidth = 85.6;
+            const pageHeight = 54;
+
+            // Background
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+            // Add school logo as background with 50% transparency (fill entire pass)
+            const logoAspect = schoolLogoImg.width / schoolLogoImg.height;
+            let bgLogoWidth = pageWidth;
+            let bgLogoHeight = pageHeight;
+            
+            // Fill the entire area (cover) - parts may be cut off
+            if (logoAspect > pageWidth / pageHeight) {
+                bgLogoWidth = bgLogoHeight * logoAspect;
+            } else {
+                bgLogoHeight = bgLogoWidth / logoAspect;
+            }
+            
+            const bgLogoX = (pageWidth - bgLogoWidth) / 2;
+            const bgLogoY = (pageHeight - bgLogoHeight) / 2;
+            
+            pdf.setGState(new pdf.GState({ opacity: 0.5 }));
+            pdf.addImage(schoolLogo, 'PNG', bgLogoX, bgLogoY, bgLogoWidth, bgLogoHeight);
+            pdf.setGState(new pdf.GState({ opacity: 1.0 }));
+
+            // Add border
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(2, 2, pageWidth - 4, pageHeight - 4);
+
+            // Add student photo (left side, larger)
+            const photoAspect = studentPhotoImg.width / studentPhotoImg.height;
+            const photoMaxWidth = 32;
+            const photoMaxHeight = pageHeight - 8;
+            let photoWidth, photoHeight;
+            
+            if (photoAspect > photoMaxWidth / photoMaxHeight) {
+                photoWidth = photoMaxWidth;
+                photoHeight = photoWidth / photoAspect;
+            } else {
+                photoHeight = photoMaxHeight;
+                photoWidth = photoHeight * photoAspect;
+            }
+            
+            const photoX = 4;
+            const photoY = (pageHeight - photoHeight) / 2;
+            pdf.addImage(studentPhoto, 'PNG', photoX, photoY, photoWidth, photoHeight);
+
+            // Right side content
+            const rightX = photoX + photoWidth + 4;
+            const rightWidth = pageWidth - rightX - 4;
+
+            // Add "PRESS" text
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('PRESS', rightX, 10);
+
+            // Add student name
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(0, 0, 0);
+            const nameLines = pdf.splitTextToSize(studentNameValue, rightWidth);
+            pdf.text(nameLines, rightX, 18);
+
+            // Add title
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'italic');
+            pdf.setTextColor(100, 100, 100);
+            const titleLines = pdf.splitTextToSize(studentTitleValue, rightWidth);
+            pdf.text(titleLines, rightX, 25);
+
+            // Add barcode
+            const barcodeWidth = rightWidth;
+            const barcodeHeight = 8;
+            const barcodeY = 38;
+            pdf.addImage(barcodeDataUrl, 'PNG', rightX, barcodeY, barcodeWidth, barcodeHeight);
+
+            // Add school name above ID number
+            pdf.setFontSize(7);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(0, 0, 0);
+            const schoolNameWidth = pdf.getTextWidth(schoolNameValue);
+            const schoolNameX = rightX + (barcodeWidth - schoolNameWidth) / 2;
+            pdf.text(schoolNameValue, schoolNameX, barcodeY - 5);
+
+            // Add ID number text centered above barcode with no margin
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(0, 0, 0);
+            const idWidth = pdf.getTextWidth(idNumberValue);
+            const idX = rightX + (barcodeWidth - idWidth) / 2;
+            pdf.text(idNumberValue, idX, barcodeY - 1);
+        }
+
+        function addVerticalPage(pdf, barcodeDataUrl) {
+            const pageWidth = 54;
+            const pageHeight = 85.6;
+
+            // Background
+            pdf.setFillColor(255, 255, 255);
+            pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+
+            // Add school logo as background with 50% transparency (fill entire pass)
+            const logoAspect = schoolLogoImg.width / schoolLogoImg.height;
+            let bgLogoWidth = pageWidth;
+            let bgLogoHeight = pageHeight;
+            
+            // Fill the entire area (cover) - parts may be cut off
+            if (logoAspect > pageWidth / pageHeight) {
+                bgLogoWidth = bgLogoHeight * logoAspect;
+            } else {
+                bgLogoHeight = bgLogoWidth / logoAspect;
+            }
+            
+            const bgLogoX = (pageWidth - bgLogoWidth) / 2;
+            const bgLogoY = (pageHeight - bgLogoHeight) / 2;
+            
+            pdf.setGState(new pdf.GState({ opacity: 0.5 }));
+            pdf.addImage(schoolLogo, 'PNG', bgLogoX, bgLogoY, bgLogoWidth, bgLogoHeight);
+            pdf.setGState(new pdf.GState({ opacity: 1.0 }));
+
+            // Add border
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.rect(2, 2, pageWidth - 4, pageHeight - 4);
+
+            let currentY = 5;
+
+            // Add "PRESS" text (spanning entire width)
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(0, 0, 0);
+            
+            // Calculate font size to span the width
+            const targetWidth = pageWidth - 4; // Small margin on each side
+            let fontSize = 20;
+            pdf.setFontSize(fontSize);
+            let pressWidth = pdf.getTextWidth('PRESS');
+            fontSize = (targetWidth / pressWidth) * fontSize;
+            pdf.setFontSize(fontSize);
+            pressWidth = pdf.getTextWidth('PRESS');
+            
+            pdf.text('PRESS', (pageWidth - pressWidth) / 2, currentY + 6);
+            currentY += fontSize * 0.6;
+
+            // Add student photo (centered)
+            const photoAspect = studentPhotoImg.width / studentPhotoImg.height;
+            const photoMaxWidth = pageWidth - 8;
+            const photoMaxHeight = 28;
+            let photoWidth, photoHeight;
+            
+            if (photoAspect > photoMaxWidth / photoMaxHeight) {
+                photoWidth = photoMaxWidth;
+                photoHeight = photoWidth / photoAspect;
+            } else {
+                photoHeight = photoMaxHeight;
+                photoWidth = photoHeight * photoAspect;
+            }
+            
+            const photoX = (pageWidth - photoWidth) / 2;
+            pdf.addImage(studentPhoto, 'PNG', photoX, currentY, photoWidth, photoHeight);
+            currentY += photoHeight + 4;
+
+            // Add student name
+            pdf.setFontSize(11);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(0, 0, 0);
+            const nameLines = pdf.splitTextToSize(studentNameValue, pageWidth - 8);
+            const nameWidth = pdf.getTextWidth(nameLines[0]);
+            pdf.text(nameLines, (pageWidth - nameWidth) / 2, currentY);
+            currentY += nameLines.length * 5 + 1;
+
+            // Add title
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'italic');
+            pdf.setTextColor(100, 100, 100);
+            const titleLines = pdf.splitTextToSize(studentTitleValue, pageWidth - 8);
+            const titleWidth = pdf.getTextWidth(titleLines[0]);
+            pdf.text(titleLines, (pageWidth - titleWidth) / 2, currentY);
+            currentY += titleLines.length * 4 + 2;
+
+            // Add barcode
+            const barcodeWidth = pageWidth - 8;
+            const barcodeHeight = 8;
+            const barcodeX = 4;
+            const barcodeY = currentY;
+            pdf.addImage(barcodeDataUrl, 'PNG', barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+
+            // Add school name above ID number
+            pdf.setFontSize(7);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(0, 0, 0);
+            const schoolNameWidth = pdf.getTextWidth(schoolNameValue);
+            pdf.text(schoolNameValue, (pageWidth - schoolNameWidth) / 2, barcodeY - 5);
+
+            // Add ID number text centered above barcode with no margin
+            pdf.setFontSize(8);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(0, 0, 0);
+            const idWidth = pdf.getTextWidth(idNumberValue);
+            pdf.text(idNumberValue, (pageWidth - idWidth) / 2, barcodeY - 1);
+        }
+
+        function resetForm() {
+            studentPhoto = null;
+            studentPhotoImg = null;
+            schoolLogo = null;
+            schoolLogoImg = null;
+            studentNameValue = '';
+            studentTitleValue = '';
+            schoolNameValue = '';
+            idNumberValue = '';
+
+            photoPreview.src = '';
+            photoZone.classList.remove('has-image');
+            photoInput.value = '';
+
+            logoPreview.src = '';
+            logoZone.classList.remove('has-image');
+            logoInput.value = '';
+
+            studentNameInput.value = '';
+            studentTitleInput.value = '';
+            schoolNameInput.value = '';
+            idNumberInput.value = '';
+
+            checkFormCompletion();
+        }
+    </script>
+</body>
+</html>
